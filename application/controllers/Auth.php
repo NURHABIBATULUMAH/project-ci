@@ -5,7 +5,6 @@ class Auth extends CI_Controller {
 
     public function __construct() {
         parent::__construct();
-        // Load library dan model yang dibutuhkan
         $this->load->library(['form_validation', 'session']);
         $this->load->model('User_model');
         $this->load->helper('url');
@@ -20,8 +19,8 @@ class Auth extends CI_Controller {
         } else {
             $data = [
                 'username' => $this->input->post('username'),
-                // Hashing password agar aman di database
-                'password' => password_hash($this->input->post('password'), PASSWORD_DEFAULT)
+                'password' => password_hash($this->input->post('password'), PASSWORD_DEFAULT),
+                'role'     => 'user' 
             ];
             $this->User_model->register($data);
             $this->session->set_flashdata('success', 'Registrasi berhasil! Silahkan login.');
@@ -40,19 +39,17 @@ class Auth extends CI_Controller {
             $password = $this->input->post('password');
             $user = $this->User_model->login($username);
 
-            // Verifikasi user dan password
             if ($user && password_verify($password, $user['password'])) {
+                // PASTIKAN 'id' disimpan di sini
                 $session_data = [
-                    'username' => $user['username'], 
+                    'id'        => $user['id'], 
+                    'username'  => $user['username'], 
+                    'role'      => $user['role'], 
                     'logged_in' => TRUE
                 ];
                 $this->session->set_userdata($session_data);
-
-                // Langsung redirect ke halaman utama produk
                 redirect('produk'); 
-                
             } else {
-                // Jika gagal, beri pesan error dan balik ke login
                 $this->session->set_flashdata('error', 'Username atau Password salah');
                 redirect('auth/login');
             }
@@ -60,7 +57,6 @@ class Auth extends CI_Controller {
     }
 
     public function logout() {
-        // Hapus semua data session saat logout
         $this->session->sess_destroy();
         redirect('auth/login');
     }
